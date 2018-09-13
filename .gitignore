@@ -102,3 +102,11 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# odoo
+server.conf
+odoo.conf
+data_dir/
+
+# Pycharm
+.idea/
