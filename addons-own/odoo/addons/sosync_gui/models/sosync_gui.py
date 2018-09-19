@@ -77,7 +77,7 @@ class SosyncJob(models.Model):
     job_source_target_record_id = fields.Integer(string="Target Rec. ID", readonly=True,
                                                  help="Only filled if the target system id is already available in the "
                                                       "job source system at job creation time!")
-    job_source_sosync_write_date = fields.Char(string="sosync_write_date", readonly=True)
+    job_source_sosync_write_date = fields.Datetime(string="sosync_write_date", readonly=True)
     job_source_fields = fields.Text(string="Fields", readonly=True)
 
     # Additional info for merge and delete sync jobs
