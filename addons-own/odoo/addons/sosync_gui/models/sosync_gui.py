@@ -143,7 +143,7 @@ class SosyncJob(models.Model):
     # CHILD JOB INFO
     # --------------
     parent_job_id = fields.Many2one(comodel_name="sosync.job",
-                                    string="Parent Job", readonly=True)
+                                    string="Parent Job", readonly=True, index=True)
     child_job_ids = fields.One2many(comodel_name="sosync.job", inverse_name="parent_job_id",
                                     string="Child Jobs", readonly=True)
     parent_path = fields.Char("Path", readonly=True, help="Find ancestors and siblings of job")
