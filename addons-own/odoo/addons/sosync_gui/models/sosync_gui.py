@@ -109,10 +109,12 @@ class SosyncJob(models.Model):
     job_run_count = fields.Integer(string="Run Count", readonly=True,
                                    help="Restarts triggered by changed source data in between job processing")
 
+    # ATTENTION: MAY CAUSE PERFORMANCE ISSUES!
     job_closed_by_job_id = fields.Many2one(comodel_name="sosync.job",
-                                           string="Closed by Job", readonly=True)
+                                           string="Closed by Job", readonly=True, index=True, ondelete='set null')
     job_closed_jobs_ids = fields.One2many(comodel_name="sosync.job", inverse_name="job_closed_by_job_id",
                                           string="Closed Jobs", readonly=True)
+
     job_log = fields.Text(string="Log", readonly=True)
     job_state = fields.Selection(selection=[("new", "New"),
                                             ("inprogress", "In Progress"),
@@ -142,10 +144,13 @@ class SosyncJob(models.Model):
 
     # CHILD JOB INFO
     # --------------
+
+    # ATTENTION: May cause performance issues!
     parent_job_id = fields.Many2one(comodel_name="sosync.job",
-                                    string="Parent Job", readonly=True, index=True)
+                                    string="Parent Job", readonly=True, index=True, ondelete='set null')
     child_job_ids = fields.One2many(comodel_name="sosync.job", inverse_name="parent_job_id",
                                     string="Child Jobs", readonly=True)
+
     parent_path = fields.Char("Path", readonly=True, help="Find ancestors and siblings of job")
     child_job_start = fields.Datetime(string="CJ Started at", readonly=True)
     child_job_end = fields.Datetime(string="CJ Finished at", readonly=True)

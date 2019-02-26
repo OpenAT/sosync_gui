@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo><data>
+
+    <!-- SOSYNC SYNC JOB: Create form, tree and list view -->
+    <record id="sosync_job_archive_form" model="ir.ui.view">
+        <field name="name">sosync_job_archive_form</field>
+        <field name="model">sosync.job_archive</field>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+            
+            <form string="Sosync Job Archive">
+                <!--<sheet>-->
+                    <header>
+                        <field name="job_state" widget="statusbar" statusbar_visible="new,inprogress,done"/>
+                    </header>
+                    <group>
+                        <group name="Job Info">
+                            <field name="id"/>
+                        </group>
+                        <group>
+                            <field name="create_date" readonly="True"/>
+                            <field name="write_date" readonly="True"/>
+                        </group>
+                    </group>
+                    <group string="Job-Source Info">
+                        <group>
+                            <field name="job_date"/>
+                            <field name="job_fetched"/>
+                            <field name="job_priority"/>
+                        </group>
+                        <group>
+                            <field name="job_source_sosync_write_date"/>
+                            <field name="job_source_system"/>
+                            <field name="job_source_model"/>
+                            <field name="job_source_record_id"/>
+                            <field name="job_source_target_record_id"/>
+                            <field name="job_source_fields"/>
+                        </group>
+                    </group>
+                    <group name="Job Source Details">
+                        <group>
+                            <field name="job_source_type"/>
+                            <field name="job_source_type_info"/>
+                        </group>
+                        <group>
+                            <field name="job_source_merge_into_record_id"/>
+                            <field name="job_source_target_merge_into_record_id"/>
+                            
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        
+                        <page string="Processing Info">
+                            <group>
+                                <group>
+                                    <field name="job_duration"/>
+                                    <field name="job_run_count"/>
+                                    <field name="job_closed_by_job_id"/>
+                                </group>
+                                <group>
+                                    <field name="job_start"/>
+                                    <field name="job_end"/>
+                                </group>
+                            </group>
+                            <group string="Computed Source and Target">
+                                <group>
+                                    <field name="sync_source_system"/>
+                                    <field name="sync_source_model"/>
+                                    <field name="sync_source_record_id"/>
+                                    <field name="sync_source_merge_into_record_id"/>
+                                </group>
+                                <group>
+                                    <field name="sync_target_system"/>
+                                    <field name="sync_target_model"/>
+                                    <field name="sync_target_record_id"/>
+                                    <field name="sync_target_merge_into_record_id"/>
+                                </group>
+                            </group>
+                            <group string="Error">
+                                <field name="job_error_code"/>
+                                <field name="job_error_text"/>
+                            </group>
+                            <group string="Log">
+                                <field name="job_log"/>
+                            </group>
+                        </page>
+                        
+                        <page string="Child-Job Info">
+                            <group>
+                                <group>
+                                    <field name="child_job_duration"/>
+                                    <field name="parent_job_id"/>
+                                    <field name="parent_path"/>
+                                </group>
+                                <group>
+                                    <field name="child_job_start"/>
+                                    <field name="child_job_end"/>
+                                </group>
+                            </group>
+                            <group string="Child Jobs">
+                                <field name="child_job_ids"/>
+                            </group>
+                        </page>
+                        
+                        <page string="Sync Info">
+                            <group>
+                                <group>
+                                    <field name="sync_duration"/>
+                                </group>
+                                <group>
+                                    <field name="sync_start"/>
+                                    <field name="sync_end"/>
+                                </group>
+                            </group>
+                            <group string="Source Data">
+                                <field name="sync_source_data"/>
+                            </group>
+                            <group string="Target Request">
+                                <group>
+                                    <field name="sync_target_request"/>
+                                </group>
+                                <group>
+                                    <field name="sync_target_answer"/>
+                                </group>
+                            </group>
+                            <group string="Target Data">
+                                <group>
+                                    <field name="sync_target_data_before"/>
+                                </group>
+                                <group>
+                                    <field name="sync_target_data_after"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                    </notebook>
+                <!--</sheet>-->
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="sosync_job_archive_tree">
+        <field name="name">sosync_job_archive_tree</field>
+        <field name="model">sosync.job_archive</field>
+        <field name="type">tree</field>
+        <field name="arch" type="xml">
+            <tree string="Sosync Job"
+                  default_order="job_start DESC, write_date DESC, job_date DESC, job_fetched DESC"
+                  colors="
+                      red:job_state in ('error', 'skipped');
+                      orange:job_state in ('inprogress',);
+                      green:job_state in ('done',)">
+                <field name="id"/>
+                
+                <field name="job_date" string="Job Date"/>
+                <field name="job_fetched" string="Fetched"/>
+                <field name="job_start" string="Started"/>
+                <field name="job_duration" string="Duration"/>
+                
+                <field name="job_source_system" string="Job System"/>
+                <field name="job_source_model" string="Job Model"/>
+                <field name="job_source_record_id" string="Job ID"/>
+                
+                <field name="sync_target_system" string="Target System"/>
+                <field name="sync_target_model" string="Target Model"/>
+                <field name="sync_target_record_id" string="Target ID"/>
+                
+                <field name="parent_job_id" string="Parent"/>
+                <field name="job_run_count" string="Runs"/>
+                <field name="job_source_type" string="Type"/>
+                <field name="job_state" string="State"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="sosync_job_archive_search" model="ir.ui.view">
+        <field name="model">sosync.job_archive</field>
+        <field name="arch" type="xml">
+            <search string="Sosync Jobs">
+                <field name="id"/>
+                <field name="job_source_system"/>
+                <field name="job_source_model"/>
+                <field name="job_source_record_id"/>
+                <separator/>
+                <field name="job_source_type"/>
+                <filter string="Regular-Jobs" name="regular_jobs" domain="[('job_source_type','=',False)]"/>
+                <filter string="Merge-Jobs" name="merge_jobs" domain="[('job_source_type','=','merge_into')]"/>
+                <filter string="Delete-Jobs" name="delete_jobs" domain="[('job_source_type','=','delete')]"/>
+                <separator/>
+                <field name="job_state"/>
+                <filter string="New" name="new_jobs" domain="[('job_state','=','new')]"/>
+                <filter string="In Progress" name="in_progress_jobs" domain="[('job_state','=','inprogress')]"/>
+                <filter string="Error" name="error_jobs" domain="[('job_state','=','error')]"/>
+                <filter string="Done" name="done_jobs" domain="[('job_state','=','done')]"/>
+                <filter string="Skipped" name="skipped_jobs" domain="[('job_state','=','skipped')]"/>
+                <separator/>
+                <field name="sync_source_system"/>
+                <field name="sync_source_model"/>
+                <field name="sync_source_record_id"/>
+                <separator/>
+                <field name="sync_target_system"/>
+                <field name="sync_target_model"/>
+                <field name="sync_target_record_id"/>
+                <separator/>
+                <field name="job_start"/>
+                <field name="job_end"/>
+                <field name="job_date"/>
+                <separator/>
+                <field name="job_run_count"/>
+                <field name="job_error_code"/>
+                <field name="job_error_text"/>
+                <separator/>
+                <field name="parent_job_id"/>
+                <filter string="ChildJobs" name="only_child_jobs" domain="[('parent_job_id','!=',0)]"/>
+                <filter string="ParentJobs" name="only_parent_jobs" domain="[('parent_job_id','=',0)]"/>
+                <separator/>
+                <field name="create_date"/>
+                <field name="write_date"/>
+                
+                <group expand="0" string="Group By">
+                    <filter string="State" name="job_state" context="{'group_by':'job_state'}"/>
+                    <filter string="Type" name="job_source_type" context="{'group_by':'job_source_type'}"/>
+                    <filter string="Error Code" name="job_error_code" context="{'group_by':'job_error_code'}"/>
+                    <separator/>
+                    <filter string="Job Source System" name="job_source_system" context="{'group_by':'job_source_system'}"/>
+                    <filter string="Job Source Model" name="job_source_model" context="{'group_by':'job_source_model'}"/>
+                    <separator/>
+                    <filter string="Sync Source System" name="sync_source_system" context="{'group_by':'sync_source_system'}"/>
+                    <filter string="Sync Source Model" name="sync_source_model" context="{'group_by':'sync_source_model'}"/>
+                    <separator/>
+                    <filter string="Sync Target System" name="sync_target_system" context="{'group_by':'sync_target_system'}"/>
+                    <filter string="Sync Target Model" name="sync_target_model" context="{'group_by':'sync_target_model'}"/>
+                </group>
+                
+            </search>
+        </field>
+    </record>
+
+    <!-- Now we create actions for the new views -->
+    <!-- https://www.odoo.com/de_DE/forum/hilfe-1/question/how-do-you-define-specific-not-default-views-for-each-view-mode-type-form-tree-etc-in-act-window-xml-76275 -->
+    <!-- https://www.odoo.com/de_DE/forum/hilfe-1/question/multiple-create-form-views-same-model-107193 -->
+    <record id="sosync_job_archive_action" model="ir.actions.act_window" >
+        <field name="name">Sosync Jobs</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sosync.job_archive</field>
+        
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+        
+        <!--<field name="search_view_id" ref="sosync_job_archive_search"/>-->
+    </record>
+    
+    <record id="sosync_job_archive_tree_viewaction" model="ir.actions.act_window.view">
+        <field name="sequence" eval="10"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="sosync_job_archive_tree"/>
+        <field name="act_window_id" ref="sosync_job_archive_action"/>
+    </record>
+    <record id="sosync_job_archive_form_viewaction" model="ir.actions.act_window.view">
+        <field name="sequence" eval="20"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="sosync_job_archive_form"/>
+        <field name="act_window_id" ref="sosync_job_archive_action"/>
+    </record>
+    
+    <menuitem id="sosync_job_archive_menu"
+              name="Jobs-Archive"
+              action="sosync_job_archive_action"
+              parent="sosync_gui.sosync_job_main_menu"
+              sequence="110" groups="base.group_user"/>
+    
+</data></odoo>

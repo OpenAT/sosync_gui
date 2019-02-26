@@ -9,6 +9,12 @@ FS-Online Sosyncer GUI
 ======================
 Very simple gui for the sosyncer v2 sync jobs table
 
+Adds two new config Options for odoo.conf:
+------------------------------------------
+# Use a cheaper hdd location for archive tables
+archive_table_space_name = odoo_archive_tablespace
+archive_table_space_path = /path/to/cheap/hdd/space
+
     """,
     'category': '',
     'website': 'https://www.datadialog.net',
@@ -19,6 +25,7 @@ Very simple gui for the sosyncer v2 sync jobs table
     ],
     'data': [
         'views/sosync_job.xml',
+        'views/sosync_job_archive.xml',
         'security/ir.model.access.csv',
     ],
     'demo': [
