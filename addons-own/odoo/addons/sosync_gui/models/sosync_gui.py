@@ -59,6 +59,17 @@ class SosyncJob(models.Model):
                        'job_state COLLATE pg_catalog."default") '
                        'WHERE job_state = \'new\'::text;')
 
+        # Create index if missing: "idx_job_sort_order"
+        # ---------------------------------------------
+        _logger.info("Create/Check pgsql index 'idx_job_sort_order'")
+        cr.execute('SELECT indexname FROM pg_indexes '
+                   'WHERE indexname = \'idx_job_sort_order\';')
+        if not cr.fetchone():
+            cr.execute('CREATE INDEX idx_job_sort_order '
+                       'ON sosync_job USING btree '
+                       '(job_state, job_priority DESC, job_date DESC);')
+
+        # Continue with super
         return res
 
     # ======
@@ -109,7 +120,7 @@ class SosyncJob(models.Model):
     job_run_count = fields.Integer(string="Run Count", readonly=True,
                                    help="Restarts triggered by changed source data in between job processing")
 
-    # ATTENTION: MAY CAUSE PERFORMANCE ISSUES!
+    # ATTENTION: May cause performance issues! THEREFORE INDEX IS MANDATORY ON MANY2ONE!
     job_closed_by_job_id = fields.Many2one(comodel_name="sosync.job",
                                            string="Closed by Job", readonly=True, index=True, ondelete='set null')
     job_closed_jobs_ids = fields.One2many(comodel_name="sosync.job", inverse_name="job_closed_by_job_id",
@@ -145,7 +156,7 @@ class SosyncJob(models.Model):
     # CHILD JOB INFO
     # --------------
 
-    # ATTENTION: May cause performance issues!
+    # ATTENTION: May cause performance issues! THEREFORE INDEX IS MANDATORY ON MANY2ONE!
     parent_job_id = fields.Many2one(comodel_name="sosync.job",
                                     string="Parent Job", readonly=True, index=True, ondelete='set null')
     child_job_ids = fields.One2many(comodel_name="sosync.job", inverse_name="parent_job_id",
