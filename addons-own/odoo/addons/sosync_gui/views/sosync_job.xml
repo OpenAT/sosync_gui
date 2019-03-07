@@ -147,10 +147,13 @@
         <field name="arch" type="xml">
             <tree string="Sosync Job"
                   default_order="job_start DESC, write_date DESC, job_date DESC, job_fetched DESC"
-                  colors="
-                      red:job_state in ('error', 'skipped');
-                      orange:job_state in ('inprogress',);
-                      green:job_state in ('done',)">
+                  decoration-bf="job_state == 'error'"
+                  decoration-danger="job_state == 'error'"
+                  decoration-primary="job_state == 'inprogress'"
+                  decoration-muted="job_state in ('skipped', 'error_archived', 'done_archived')"
+                  decoration-success="job_state == 'done'"
+                  decoration-warning="job_state == 'error_retry'"
+                >
                 <field name="id"/>
                 
                 <field name="job_date" string="Job Date"/>
@@ -178,6 +181,11 @@
         <field name="model">sosync.job</field>
         <field name="arch" type="xml">
             <search string="Sosync Jobs">
+                <field name="job_state"/>
+                <filter string="FAILED-JOBS" name="failed_jobs" domain="[('job_state','=','error')]"/>
+                <filter string="PENDING-JOBS" name="pending_jobs" domain="[('job_state','in',['new','inprogress','error_retry'])]"/>
+                <filter string="CURRENT-JOBS" name="current_jobs" domain="[('job_state','in',['new','inprogress','error_retry', 'error'])]"/>
+                <separator/>
                 <field name="id"/>
                 <field name="job_source_system"/>
                 <field name="job_source_model"/>
@@ -188,10 +196,11 @@
                 <filter string="Merge-Jobs" name="merge_jobs" domain="[('job_source_type','=','merge_into')]"/>
                 <filter string="Delete-Jobs" name="delete_jobs" domain="[('job_source_type','=','delete')]"/>
                 <separator/>
-                <field name="job_state"/>
                 <filter string="New" name="new_jobs" domain="[('job_state','=','new')]"/>
                 <filter string="In Progress" name="in_progress_jobs" domain="[('job_state','=','inprogress')]"/>
                 <filter string="Error" name="error_jobs" domain="[('job_state','=','error')]"/>
+                <filter string="Error-Retry" name="error_jobs" domain="[('job_state','=','error_retry')]"/>
+                <filter string="Error-Skipped" name="error_jobs" domain="[('job_state','=','error_archived')]"/>
                 <filter string="Done" name="done_jobs" domain="[('job_state','=','done')]"/>
                 <filter string="Skipped" name="skipped_jobs" domain="[('job_state','=','skipped')]"/>
                 <separator/>
@@ -247,6 +256,8 @@
         
         <field name="view_type">form</field>
         <field name="view_mode">tree,form</field>
+        
+        <field name="context">{"search_default_job_state":1, "search_default_current_jobs":1}</field>
         
         <!--<field name="search_view_id" ref="sosync_job_search"/>-->
     </record>

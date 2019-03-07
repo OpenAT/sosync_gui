@@ -81,11 +81,12 @@ class SosyncJob(models.Model):
     job_date = fields.Datetime(string="Job Create Date", readonly=True,
                                help="Creation Date of the Job in the Job Source System")
     job_fetched = fields.Datetime(string="Fetched at", readonly=True) # identical with create_date ?
-    job_priority = fields.Integer(string="Priority", default=1000, help="Higher numbers will be processed first")
+    job_priority = fields.Integer(string="Priority", default=1000, help="Higher numbers will be processed first",
+                                  group_operator=False)
     job_source_system = fields.Selection(selection=_systems, string="System", readonly=True, index=True)
     job_source_model = fields.Char(string="Model", readonly=True, index=True)
-    job_source_record_id = fields.Integer(string="Record ID", readonly=True)
-    job_source_target_record_id = fields.Integer(string="Target Rec. ID", readonly=True,
+    job_source_record_id = fields.Integer(string="Record ID", readonly=True, group_operator=False)
+    job_source_target_record_id = fields.Integer(string="Target Rec. ID", readonly=True, group_operator=False,
                                                  help="Only filled if the target system id is already available in the "
                                                       "job source system at job creation time!")
     job_source_sosync_write_date = fields.Datetime(string="sosync_write_date", readonly=True)
@@ -107,17 +108,17 @@ class SosyncJob(models.Model):
                                             "e.g.: 'donation_deduction_disabled_repair' This should NOT be used for"
                                             "long descriptions!")
 
-    job_source_merge_into_record_id = fields.Integer(string="MergeInto ID", readonly=True)
+    job_source_merge_into_record_id = fields.Integer(string="MergeInto ID", readonly=True, group_operator=False)
     job_source_target_merge_into_record_id = fields.Integer(string="MergeInto Trg. ID",
-                                                            readonly=True)
+                                                            readonly=True, group_operator=False)
 
     # SYNCJOB PROCESSING INFO
     # -----------------------
     job_start = fields.Datetime(string="Started at", readonly=True)
     job_end = fields.Datetime(string="Finished at", readonly=True)
     job_duration = fields.Integer(compute='_compute_job_duration', store=True,
-                                  string="Duration (ms)",  readonly=True)
-    job_run_count = fields.Integer(string="Run Count", readonly=True,
+                                  string="Duration (ms)",  readonly=True, group_operator=False)
+    job_run_count = fields.Integer(string="Run Count", readonly=True, group_operator=False,
                                    help="Restarts triggered by changed source data in between job processing")
 
     # ATTENTION: May cause performance issues! THEREFORE INDEX IS MANDATORY ON MANY2ONE!
@@ -129,9 +130,12 @@ class SosyncJob(models.Model):
     job_log = fields.Text(string="Log", readonly=True)
     job_state = fields.Selection(selection=[("new", "New"),
                                             ("inprogress", "In Progress"),
-                                            ("child", "ChildJob Processing"),
+                                            ("child", "ChildJob Processing"),   # Not sure if in use?!?
                                             ("done", "Done"),
+                                            ("done_archived", "Done-Archived"),
                                             ("error", "Error"),
+                                            ("error_retry", "Error-Retry"),
+                                            ("error_archived", "Error-Archived"),
                                             ("skipped", "Skipped")],
                                  string="State", default="new", readonly=True,
                                  help="If a sync job is related to a flow listed in the instance pillar option "
@@ -165,21 +169,22 @@ class SosyncJob(models.Model):
     parent_path = fields.Char("Path", readonly=True, help="Find ancestors and siblings of job")
     child_job_start = fields.Datetime(string="CJ Started at", readonly=True)
     child_job_end = fields.Datetime(string="CJ Finished at", readonly=True)
-    child_job_duration = fields.Integer(compute="_compute_child_job_duration", store=True,
+    child_job_duration = fields.Integer(compute="_compute_child_job_duration", store=True, group_operator=False,
                                         string="CJ Duration (ms)", readonly=True)
 
     # COMPUTED SOURCE
     # ---------------
     sync_source_system = fields.Selection(selection=_systems, string="Source System", readonly=True)
     sync_source_model = fields.Char(string="Source Model", readonly=True)
-    sync_source_record_id = fields.Integer(string="Source Record ID", readonly=True)
-    sync_source_merge_into_record_id = fields.Integer(string="Source Merge-Into Record ID", readonly=True)
+    sync_source_record_id = fields.Integer(string="Source Record ID", readonly=True, group_operator=False)
+    sync_source_merge_into_record_id = fields.Integer(string="Source Merge-Into Record ID", readonly=True,
+                                                      group_operator=False)
 
     # COMPUTED TARGET
     # ---------------
     sync_target_system = fields.Selection(selection=_systems, string="Target System", readonly=True)
     sync_target_model = fields.Char(string="Target Model", readonly=True)
-    sync_target_record_id = fields.Integer(string="Target Record ID", readonly=True)
+    sync_target_record_id = fields.Integer(string="Target Record ID", readonly=True, group_operator=False)
     sync_target_merge_into_record_id = fields.Integer(string="Target Merge-Into Record ID", readonly=True)
 
     # SYNC INFO
@@ -191,7 +196,7 @@ class SosyncJob(models.Model):
     sync_target_answer = fields.Text(string="Sync Target Answer(s)", readonly=True)
     sync_start = fields.Datetime(string="Sync Start", readonly=True)
     sync_end = fields.Datetime(string="Sync End", readonly=True)
-    sync_duration = fields.Integer(compute="_compute_sync_duration", store=True,
+    sync_duration = fields.Integer(compute="_compute_sync_duration", store=True, group_operator=False,
                                    string="Sync Duration (ms)",  readonly=True)
 
     # HELPER
