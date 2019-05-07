@@ -176,7 +176,7 @@ class SosyncJob(models.Model):
     # ---------------
     sync_source_system = fields.Selection(selection=_systems, string="Source System", readonly=True)
     sync_source_model = fields.Char(string="Source Model", readonly=True)
-    sync_source_record_id = fields.Integer(string="Source Record ID", readonly=True, group_operator=False)
+    sync_source_record_id = fields.Integer(string="Source Record ID", readonly=True, group_operator=False, index=True)
     sync_source_merge_into_record_id = fields.Integer(string="Source Merge-Into Record ID", readonly=True,
                                                       group_operator=False)
 
@@ -184,7 +184,7 @@ class SosyncJob(models.Model):
     # ---------------
     sync_target_system = fields.Selection(selection=_systems, string="Target System", readonly=True)
     sync_target_model = fields.Char(string="Target Model", readonly=True)
-    sync_target_record_id = fields.Integer(string="Target Record ID", readonly=True, group_operator=False)
+    sync_target_record_id = fields.Integer(string="Target Record ID", readonly=True, group_operator=False, index=True)
     sync_target_merge_into_record_id = fields.Integer(string="Target Merge-Into Record ID", readonly=True)
 
     # SYNC INFO
