@@ -45,19 +45,26 @@ class SosyncJob(models.Model):
         #                'AND (job_to_fso_sync_version IS NULL '
         #                'OR job_to_fso_sync_version < write_date '
         #                'OR job_to_fso_sync_version > write_date);')
+        # DELETE index if missing: "skip_jobs_idx"
 
-        # Create index if missing: "skip_jobs_idx"
         # ----------------------------------------
-        _logger.info("Create/Check pgsql index 'skip_jobs_idx'")
+        _logger.info("DROP pgsql index 'skip_jobs_idx'")
         cr.execute('SELECT indexname FROM pg_indexes '
                    'WHERE indexname = \'skip_jobs_idx\';')
         if not cr.fetchone():
-            cr.execute('CREATE INDEX skip_jobs_idx '
+            cr.execute('DROP INDEX skip_jobs_idx;')
+
+        # Create index if missing: "skip_jobs_idx_new"
+        # ----------------------------------------
+        _logger.info("Create/Check pgsql index 'skip_jobs_idx_new'")
+        cr.execute('SELECT indexname FROM pg_indexes '
+                   'WHERE indexname = \'skip_jobs_idx_new\';')
+        if not cr.fetchone():
+            cr.execute('CREATE INDEX skip_jobs_idx_new '
                        'ON sosync_job USING btree '
                        '(job_source_sosync_write_date, job_source_system COLLATE pg_catalog."default", '
                        'job_source_model COLLATE pg_catalog."default", job_source_record_id, '
-                       'job_state COLLATE pg_catalog."default") '
-                       'WHERE job_state = \'new\'::text;')
+                       'job_state COLLATE pg_catalog."default");')
 
         # Create index if missing: "idx_job_sort_order"
         # ---------------------------------------------
