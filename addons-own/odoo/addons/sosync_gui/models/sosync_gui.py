@@ -19,6 +19,8 @@ class SosyncJob(models.Model):
     def _auto_init(self):
         res = super(SosyncJob, self)._auto_init()
 
+        _logger.info('AUTO INIT')
+
         cr = self.env.cr
 
         # DROP OLD UNUSED INDEXES
@@ -30,7 +32,7 @@ class SosyncJob(models.Model):
             cr.execute("SELECT indexname FROM pg_indexes WHERE indexname = '%s';" % index_to_drop)
             if cr.fetchone():
                 _logger.info("DROP pgsql index '%s'" % index_to_drop)
-                cr.execute("DROP INDEX '%s';" % index_to_drop)
+                cr.execute("DROP INDEX %s;" % index_to_drop)
 
         # Create index if missing: "idx_skip_jobs"
         # ----------------------------------------
