@@ -21,50 +21,29 @@ class SosyncJob(models.Model):
 
         cr = self.env.cr
 
-        # Create index if missing: "get_first_open_jobs_v2_idx"
-        # -----------------------------------------------------
-        _logger.info("Create/Check pgsql index 'get_first_open_jobs_v2_idx'")
-        cr.execute('SELECT indexname FROM pg_indexes '
-                   'WHERE indexname = \'get_first_open_jobs_v2_idx\';')
-        if not cr.fetchone():
-            cr.execute('CREATE INDEX get_first_open_jobs_v2_idx '
-                       'ON sosync_job USING btree '
-                       '(job_priority DESC, job_date DESC, job_state COLLATE pg_catalog."default", parent_job_id) '
-                       'WHERE job_state = \'new\'::text AND parent_job_id IS NULL;')
+        # DROP OLD UNUSED INDEXES
+        # -----------------------
+        for index_to_drop in ('skip_jobs_idx', 'skip_jobs_idx_new', 'get_first_open_jobs_v2_idx',
+                              'sosync_job_job_source_model_index', 'sosync_job_job_source_system_index',
+                              'sosync_job_job_source_type_index', 'sosync_job_sync_source_record_id_index',
+                              'sosync_job_sync_target_record_id_index'):
+            cr.execute("SELECT indexname FROM pg_indexes WHERE indexname = '%s';" % index_to_drop)
+            if cr.fetchone():
+                _logger.info("DROP pgsql index '%s'" % index_to_drop)
+                cr.execute("DROP INDEX '%s';" % index_to_drop)
 
-        # # Create index if missing: "protocol_idx"
-        # -----------------------------------------
-        # # No longer needed because no sync of jobs to FS-Online anymore
-        # cr.execute('SELECT indexname FROM pg_indexes '
-        #            'WHERE indexname = \'protocol_idx\';')
-        # if not cr.fetchone():
-        #     cr.execute('CREATE INDEX protocol_idx '
-        #                'ON sosync_job USING btree '
-        #                '(write_date DESC, job_to_fso_can_sync, job_to_fso_sync_version) '
-        #                'WHERE job_to_fso_can_sync = true '
-        #                'AND (job_to_fso_sync_version IS NULL '
-        #                'OR job_to_fso_sync_version < write_date '
-        #                'OR job_to_fso_sync_version > write_date);')
-        # DELETE index if missing: "skip_jobs_idx"
-
+        # Create index if missing: "idx_skip_jobs"
         # ----------------------------------------
-        _logger.info("DROP pgsql index 'skip_jobs_idx'")
+        _logger.info("Create/Check pgsql index 'idx_skip_jobs'")
         cr.execute('SELECT indexname FROM pg_indexes '
-                   'WHERE indexname = \'skip_jobs_idx\';')
+                   'WHERE indexname = \'idx_skip_jobs\';')
         if not cr.fetchone():
-            cr.execute('DROP INDEX skip_jobs_idx;')
-
-        # Create index if missing: "skip_jobs_idx_new"
-        # ----------------------------------------
-        _logger.info("Create/Check pgsql index 'skip_jobs_idx_new'")
-        cr.execute('SELECT indexname FROM pg_indexes '
-                   'WHERE indexname = \'skip_jobs_idx_new\';')
-        if not cr.fetchone():
-            cr.execute('CREATE INDEX skip_jobs_idx_new '
+            cr.execute('CREATE INDEX idx_skip_jobs '
                        'ON sosync_job USING btree '
                        '(job_source_sosync_write_date, job_source_system COLLATE pg_catalog."default", '
                        'job_source_model COLLATE pg_catalog."default", job_source_record_id, '
-                       'job_state COLLATE pg_catalog."default");')
+                       'job_state COLLATE pg_catalog."default")'
+                       'WHERE job_state in (\'new\', \'error\', \'error_retry\');')
 
         # Create index if missing: "idx_job_sort_order"
         # ---------------------------------------------
@@ -90,8 +69,8 @@ class SosyncJob(models.Model):
     job_fetched = fields.Datetime(string="Fetched at", readonly=True) # identical with create_date ?
     job_priority = fields.Integer(string="Priority", default=1000, help="Higher numbers will be processed first",
                                   group_operator=False)
-    job_source_system = fields.Selection(selection=_systems, string="System", readonly=True, index=True)
-    job_source_model = fields.Char(string="Model", readonly=True, index=True)
+    job_source_system = fields.Selection(selection=_systems, string="System", readonly=True)
+    job_source_model = fields.Char(string="Model", readonly=True)
     job_source_record_id = fields.Integer(string="Record ID", readonly=True, group_operator=False)
     job_source_target_record_id = fields.Integer(string="Target Rec. ID", readonly=True, group_operator=False,
                                                  help="Only filled if the target system id is already available in the "
@@ -108,8 +87,7 @@ class SosyncJob(models.Model):
                                                                  ],
                                        help="Job type indicator for special sync jobs. "
                                             "If empty it is processed as a default sync job = 'create' or 'update'",
-                                       readonly=True, default=False,
-                                       index=True)
+                                       readonly=True, default=False)
     job_source_type_info = fields.Char(string='Syncflow Indi.', readonly=True,
                                        help="Indicator for repair sync flows (to group by later on) "
                                             "e.g.: 'donation_deduction_disabled_repair' This should NOT be used for"
@@ -183,7 +161,7 @@ class SosyncJob(models.Model):
     # ---------------
     sync_source_system = fields.Selection(selection=_systems, string="Source System", readonly=True)
     sync_source_model = fields.Char(string="Source Model", readonly=True)
-    sync_source_record_id = fields.Integer(string="Source Record ID", readonly=True, group_operator=False, index=True)
+    sync_source_record_id = fields.Integer(string="Source Record ID", readonly=True, group_operator=False)
     sync_source_merge_into_record_id = fields.Integer(string="Source Merge-Into Record ID", readonly=True,
                                                       group_operator=False)
 
@@ -191,7 +169,7 @@ class SosyncJob(models.Model):
     # ---------------
     sync_target_system = fields.Selection(selection=_systems, string="Target System", readonly=True)
     sync_target_model = fields.Char(string="Target Model", readonly=True)
-    sync_target_record_id = fields.Integer(string="Target Record ID", readonly=True, group_operator=False, index=True)
+    sync_target_record_id = fields.Integer(string="Target Record ID", readonly=True, group_operator=False)
     sync_target_merge_into_record_id = fields.Integer(string="Target Merge-Into Record ID", readonly=True)
 
     # SYNC INFO
